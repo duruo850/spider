@@ -56,7 +56,7 @@ class RegisterGanji:
         # 注册页面
         await self.page.goto('https://passport.ganji.com/register.php')
 
-        time.sleep(random.random() * 2)
+        time.sleep(0.5)
 
         # 输入手机号码
         await self.page.type('.t_reg_phone', phone_, {'delay': random.randint(100, 151) - 50})
@@ -64,10 +64,8 @@ class RegisterGanji:
         # 回车
         await self.page.keyboard.press('Enter')
 
-        # 直到validatorPhone标签出现
-        while not await self.page.querySelector('.validatorPhone'):
-            await asyncio.sleep(0.2)
-            pass
+        # 直到validatorPhone标签出现,
+        await asyncio.sleep(0.5)
 
         # 获取span的validatorPhone的值
         tip_phone = await self.page.querySelectorEval('#tip_phone', 'node => node.textContent')
@@ -79,10 +77,19 @@ class RegisterGanji:
 
 
 if __name__ == '__main__':
-    username = "zhanchenjin.2008@163.com"
-    password = "zcj416"
-    phone = "18610060484"
+    username = None
+    password = None
+
+    ls = [
+        {"phone": "18610060484", "is_register": True},
+        {"phone": "18611719823", "is_register": False},
+    ]
     register = RegisterGanji()
     loop = asyncio.get_event_loop()
-    task = asyncio.ensure_future(register.main(phone, username, password))
-    loop.run_until_complete(task)
+
+    for dic in ls:
+        task = asyncio.ensure_future(register.main(dic['phone'], username, password))
+        loop.run_until_complete(task)
+        res = task.result()
+        print("phone:%s is register: %s" % (dic['phone'], res))
+        assert res == dic['is_register'], [res, dic]
